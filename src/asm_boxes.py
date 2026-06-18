@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict
 from instructions import MicroInstruction, Condition
+from parser import ExpressionEvaluator
 
 
 class AbstractBox(ABC):
@@ -19,27 +20,29 @@ class AbstractBox(ABC):
 class StateBox(AbstractBox):
     def __init__(self, box_id: str, actions: List[str], next_box: str):
         super().__init__(box_id)
-        self.actions = {MicroInstruction(s) for s in actions}
+        self.actions = [MicroInstruction(s) for s in actions]
         self.next_box = next_box
 
     def perform(self, datapath) -> str:
         for action in self.actions:
-            # TODO: Parse 'LHS <= RHS', evaluate RHS using datapath.current_val,
-            # and stage the result to datapath.next_val
-            pass
+            ExpressionEvaluator.execute_micro_instruction(
+                action.raw_instruction, datapath
+            )
         return self.next_box
 
 
 class ConditionalBox(AbstractBox):
     def __init__(self, box_id: str, actions: List[str], next_box: str):
         super().__init__(box_id)
-        self.actions = {MicroInstruction(s) for s in actions}
+        self.actions = [MicroInstruction(s) for s in actions]
         self.next_box = next_box
 
     def perform(self, datapath) -> str:
         for action in self.actions:
-            # TODO: Same logic as StateBox. Stage assignments to next_val.
-            pass
+            ExpressionEvaluator.execute_micro_instruction(
+                action.raw_instruction, datapath
+            )
+        return self.next_box
 
 
 class DecisionBox(AbstractBox):
@@ -49,13 +52,13 @@ class DecisionBox(AbstractBox):
         self.branches = branches
 
     def perform(self, datapath) -> str:
-        # TODO: Evaluate the condition string using datapath.current_val
-        # For now, let's assume evaluation returns a string "0" or "1"
-        eval_result = "0"  # Placeholder
+        eval_result = ExpressionEvaluator.evaluate_rhs(
+            self.condition.raw_condition, datapath
+        )
+        eval_str = str(eval_result)
 
-        if eval_result not in self.branches:
+        if eval_str not in self.branches:
             raise ValueError(
-                f"Condition result '{eval_result}' not found in branches for {self.box_id}"
+                f"Branch evaluation result '{eval_str}' not mapped in box '{self.box_id}'"
             )
-
-        return self.branches[eval_result]
+        return self.branches[eval_str]

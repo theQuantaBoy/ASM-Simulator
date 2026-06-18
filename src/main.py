@@ -1,59 +1,83 @@
-import sys
 import os
-
-# Add the current directory to path if needed for package relative imports
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
+import sys
 from json_utils import load_asm_environment
 
 
-def run_sanity_check(json_filepath: str):
-    print("--- Starting ASM Simulator Sanity Check ---")
-
+def simulate_asm(json_filepath: str):
     if not os.path.exists(json_filepath):
-        print(f"Error: Target file '{json_filepath}' not found.")
+        print(f"Error: Target simulation layout data path '{json_filepath}' not found.")
         return
 
     try:
-        # Load environment via the json_utils module
-        metadata, initial_box, box_map, testbench = load_asm_environment(json_filepath)
+        datapath, initial_box, box_map, testbench = load_asm_environment(json_filepath)
 
-        print("\n[+] JSON Parsing Successful!")
-        print(f"Initial Box ID Target: {initial_box}")
-        print(
-            f"Total Simulation Cycles Requested: {testbench.get('total_cycles', 'Not Specified')}"
-        )
+        total_cycles = testbench.get("total_cycles", 0)
+        time_line = testbench.get("time_line", {})
 
-        print("\n--- Parsed Datapath Metadata ---")
-        print(f"Inputs detected: {list(metadata.get('inputs', {}).keys())}")
-        print(f"Registers detected: {list(metadata.get('registers', {}).keys())}")
-        print(f"Monitored Outputs: {metadata.get('outputs', [])}")
+        current_box_id = initial_box
 
-        print("\n--- Object Factory Instantiation Map ---")
-        for box_id, box_obj in box_map.items():
-            box_type = type(box_obj).__name__
-            print(f" ID: {box_id:<8} | Instantiated Class: {box_type:<15}")
+        # Build layout columns for data report printing
+        reg_names = list(datapath.registers.keys())
+        input_names = list(datapath.inputs.keys())
 
-            # Print attributes to confirm wrappers work
-            if hasattr(box_obj, "actions"):
-                action_strs = [str(act) for act in box_obj.actions]
-                print(f"   -> Actions found: {action_strs}")
-            if hasattr(box_obj, "condition"):
-                print(f"   -> Branch Condition: {box_obj.condition}")
-            if hasattr(box_obj, "branches"):
-                print(f"   -> Alternative Branches Map: {box_obj.branches}")
-            if hasattr(box_obj, "next_box"):
-                print(f"   -> Sequence Decoupled Next: {box_obj.next_box}")
+        headers = ["Clock Cycle", "Active State"] + input_names + reg_names
+        header_line = " | ".join(f"{h:<13}" for h in headers)
 
-        print(
-            "\n[✔] Sanity Check Passed! Environment layout is ready for simulation execution logic."
-        )
+        print("\n" + "=" * len(header_line))
+        print("               CYCLE ACCURATE ASM SIMULATION STATE REPORT")
+        print("=" * len(header_line))
+        print(header_line)
+        print("-" * len(header_line))
+
+        for i in range(total_cycles):
+            cycle_str = str(i)
+
+            # 1. Update external inputs at the start of the clock cycle
+            if cycle_str in time_line:
+                cycle_changes = time_line[cycle_str]
+                for key, val in cycle_changes.items():
+                    if key in datapath.inputs:
+                        datapath.inputs[key] = val
+                    elif key in datapath.registers:
+                        datapath.registers[key].current_val = val
+                        datapath.registers[key].next_val = val
+
+            # 2. Combinational path traversal matching physical circuit propagation
+            state_logged_this_cycle = current_box_id
+
+            current_box = box_map[current_box_id]
+            next_box_id = current_box.perform(datapath)
+
+            # Continuous traversal through combinational elements (Decision/Conditional)
+            while type(box_map[next_box_id]).__name__ != "StateBox":
+                current_box = box_map[next_box_id]
+                next_box_id = current_box.perform(datapath)
+
+            # 3. Log active state variable metrics to output tracking table
+            row_values = [str(i), state_logged_this_cycle]
+            for inp in input_names:
+                row_values.append(str(datapath.inputs[inp]))
+            for reg in reg_names:
+                row_values.append(str(datapath.registers[reg].current_val))
+
+            print(" | ".join(f"{v:<13}" for v in row_values))
+
+            # 4. Synchronous Clock Edge Trigger
+            for reg in datapath.registers.values():
+                reg.commit()
+
+            # Assign state position target for the next cycle loop run
+            current_box_id = next_box_id
+
+        print("=" * len(header_line) + "\n")
 
     except Exception as e:
-        print(f"\n[❌] Sanity Check Failed due to an execution error: {e}")
+        print(f"\n[❌] Simulation runtime failure: {e}")
 
 
 if __name__ == "__main__":
-    # Point this to wherever your structural divider JSON data file is stored
-    target_json = "../data/asm_test.json"
-    run_sanity_check(target_json)
+    if len(sys.argv) > 1:
+        simulate_asm(sys.argv[1])
+    else:
+        # Default test benchmark file path configuration
+        simulate_asm("../data/asm_test.json")

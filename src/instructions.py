@@ -1,4 +1,5 @@
 class MicroInstruction:
+
     def __init__(self, instruction: str):
         self.raw_instruction = instruction
 
@@ -7,6 +8,7 @@ class MicroInstruction:
 
 
 class Condition:
+
     def __init__(self, condition: str):
         self.raw_condition = condition
 

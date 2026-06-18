@@ -1,21 +1,30 @@
 import json
+from datapath import Register, Datapath
 from asm_boxes import StateBox, DecisionBox, ConditionalBox
 
 
 def load_asm_environment(filepath: str):
-    """
-    Reads the JSON file and builds the simulation environment.
-    Returns metadata, the initial box ID, the instantiated box map, and the testbench.
-    """
     with open(filepath, "r") as f:
         data = json.load(f)
 
     metadata = data.get("metadata", {})
+
+    outputs = metadata.get("outputs", [])
     initial_box = data.get("initial_box")
     testbench = data.get("testbench", {})
     raw_boxes = data.get("boxes", {})
 
+    inputs = {}
+    registers = {}
     box_map = {}
+
+    for input_name in metadata.get("inputs", {}).keys():
+        inputs[input_name] = 0
+
+    for reg_name, width in metadata.get("registers", {}).items():
+        registers[reg_name] = Register(reg_name, width)
+
+    datapath_obj = Datapath(inputs, outputs, registers)
 
     for box_id, box_data in raw_boxes.items():
         box_type = box_data.get("type")
@@ -39,6 +48,6 @@ def load_asm_environment(filepath: str):
                 branches=box_data.get("branches", {}),
             )
         else:
-            raise ValueError(f"Unknown box type '{box_type}' in box {box_id}")
+            raise ValueError(f"Unknown box type identifier target: '{box_type}'")
 
-    return metadata, initial_box, box_map, testbench
+    return datapath_obj, initial_box, box_map, testbench
