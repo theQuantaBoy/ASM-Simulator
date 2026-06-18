@@ -1,0 +1,17 @@
+INPUT in1<31,0>, in2<31,0>;
+REGISTER A<31:0>, B<31:0>, Q<31:0>, R<31:0>;
+REGISTER End<0,0>, Err<0,0>, S<0,0>;
+OUTPUT Q,R,End,Err;
+INITIAL Box1;
+
+Box1: STATE, {}, Box2;
+Box2: DECISION, {S}, 0:Box1, 1:Box3;
+Box3: CONDITIONAL, {A=in1, B=in2, Q=0, End=0}, Box4;
+Box4: STATE, {}, Box5;
+Box5: DECISION, {|B}, 0:Box6, 1: Box7;
+Box6: CONDITIONAL, {Err=1, End=1}, Box1;
+Box7: CONDITIONAL, {Err=0}, Box8;
+Box8: STATE, {}, Box9;
+Box9: DECISION, {B>A}, 0:Box10, 1: Box11;
+Box10: CONDITIONAL, {A=A-B, Q=Q+1}, Box8;
+Box11: CONDITIONAL, {R=A, End=1}, Box1;

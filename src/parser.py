@@ -99,6 +99,8 @@ class ExpressionEvaluator:
 
         if "<-" in line:
             lhs, rhs = line.split("<-", 1)
+        elif "<=" in line:
+            lhs, rhs = line.split("<=", 1)
         elif "=" in line:
             lhs, rhs = line.split("=", 1)
         else:
