@@ -1,0 +1,122 @@
+{
+    "metadata": {
+        "inputs": {
+            "in1": 32,
+            "in2": 32
+        },
+        "outputs": [
+            "Q",
+            "R",
+            "End",
+            "Err"
+        ],
+        "registers": {
+            "A": 32,
+            "B": 32,
+            "Q": 32,
+            "R": 32,
+            "End": 1,
+            "Err": 1,
+            "S": 1
+        }
+    },
+    "initial_box": "Box1",
+    "boxes": {
+        "Box1": {
+            "type": "STATE",
+            "actions": [],
+            "next": "Box2"
+        },
+        "Box2": {
+            "type": "DECISION",
+            "condition": "S",
+            "branches": {
+                "0": "Box1",
+                "1": "Box3"
+            }
+        },
+        "Box3": {
+            "type": "CONDITIONAL",
+            "actions": [
+                "A <= in1",
+                "B <= in2",
+                "Q <= 0",
+                "End <= 0"
+            ],
+            "next": "Box4"
+        },
+        "Box4": {
+            "type": "STATE",
+            "actions": [],
+            "next": "Box5"
+        },
+        "Box5": {
+            "type": "DECISION",
+            "condition": "B",
+            "branches": {
+                "0": "Box6",
+                "1": "Box7"
+            }
+        },
+        "Box6": {
+            "type": "CONDITIONAL",
+            "actions": [
+                "Err <= 1",
+                "End <= 1"
+            ],
+            "next": "Box1"
+        },
+        "Box7": {
+            "type": "CONDITIONAL",
+            "actions": [
+                "Err <= 0"
+            ],
+            "next": "Box8"
+        },
+        "Box8": {
+            "type": "STATE",
+            "actions": [],
+            "next": "Box9"
+        },
+        "Box9": {
+            "type": "DECISION",
+            "condition": "B > A",
+            "branches": {
+                "0": "Box10",
+                "1": "Box11"
+            }
+        },
+        "Box10": {
+            "type": "CONDITIONAL",
+            "actions": [
+                "A <= A - B",
+                "Q <= Q + 1"
+            ],
+            "next": "Box8"
+        },
+        "Box11": {
+            "type": "CONDITIONAL",
+            "actions": [
+                "R <= A",
+                "End <= 1"
+            ],
+            "next": "Box1"
+        }
+    },
+    "testbench": {
+        "total_cycles": 10,
+        "timeline": {
+            "0": {
+                "S": 0,
+                "in1": 15,
+                "in2": 3
+            },
+            "1": {
+                "S": 1
+            },
+            "2": {
+                "S": 0
+            }
+        }
+    }
+}
