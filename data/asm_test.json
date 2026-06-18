@@ -38,10 +38,10 @@
         "Box3": {
             "type": "CONDITIONAL",
             "actions": [
-                "A <- in1",
-                "B <- in2",
-                "Q <- 0",
-                "End <- 0"
+                "A <= in1",
+                "B <= in2",
+                "Q <= 0",
+                "End <= 0"
             ],
             "next": "Box4"
         },
@@ -61,15 +61,15 @@
         "Box6": {
             "type": "CONDITIONAL",
             "actions": [
-                "Err <- 1",
-                "End <- 1"
+                "Err <= 1",
+                "End <= 1"
             ],
             "next": "Box1"
         },
         "Box7": {
             "type": "CONDITIONAL",
             "actions": [
-                "Err <- 0"
+                "Err <= 0"
             ],
             "next": "Box8"
         },
@@ -89,16 +89,16 @@
         "Box10": {
             "type": "CONDITIONAL",
             "actions": [
-                "A <- A - B",
-                "Q <- Q + 1"
+                "A <= A - B",
+                "Q <= Q + 1"
             ],
             "next": "Box8"
         },
         "Box11": {
             "type": "CONDITIONAL",
             "actions": [
-                "R <- A",
-                "End <- 1"
+                "R <= A",
+                "End <= 1"
             ],
             "next": "Box1"
         }

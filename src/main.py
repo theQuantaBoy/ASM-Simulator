@@ -2,6 +2,7 @@ import os
 import sys
 import argparse
 from json_utils import load_asm_design, build_asm_objects, load_testbench
+from vcd_logger import VcdLogger  # === VCD ADDITION ===
 
 
 def simulate_asm(
@@ -9,6 +10,7 @@ def simulate_asm(
     testbench_filepath: str,
     show_all: bool = False,
     timeout_limit: int = None,
+    vcd_filepath: str = None,  # === VCD ADDITION ===
 ):
     if not os.path.exists(asm_filepath):
         print(f"Error: ASM description file '{asm_filepath}' not found.")
@@ -17,10 +19,17 @@ def simulate_asm(
         print(f"Error: Testbench verification file '{testbench_filepath}' not found.")
         return
 
+    vcd_logger = None  # === VCD ADDITION ===
     try:
         # 1. Load and instantiate hardware model
         asm_data = load_asm_design(asm_filepath)
         datapath, initial_box, box_map = build_asm_objects(asm_data)
+
+        # === VCD ADDITION ===
+        if vcd_filepath:
+            input_widths = asm_data.get("metadata", {}).get("inputs", {})
+            vcd_logger = VcdLogger(vcd_filepath, datapath, box_map, input_widths)
+            print(f"[⚙️] Waveform tracer module online: '{vcd_filepath}'")
 
         # 2. Extract verification metadata and determine exact simulation cycles
         testbench = load_testbench(testbench_filepath)
@@ -81,6 +90,10 @@ def simulate_asm(
                     elif key in datapath.registers:
                         datapath.registers[key].current_val = val
                         datapath.registers[key].next_val = val
+
+            # === VCD ADDITION ===
+            if vcd_logger:
+                vcd_logger.log_cycle(i, current_box_id)
 
             # Check if execution path has branched away from initialization node
             if current_box_id != initial_box:
@@ -144,6 +157,11 @@ def simulate_asm(
 
         print(f"\n[❌] Simulation runtime failure: {e}")
         traceback.print_exc()
+    finally:
+        # === VCD ADDITION ===
+        if vcd_logger:
+            vcd_logger.close()
+            print("[💾] Waveform dump log file saved successfully.")
 
 
 if __name__ == "__main__":
@@ -177,6 +195,14 @@ if __name__ == "__main__":
         default=None,
         help="Force execution for this exact number of cycles, overriding adaptive modes.",
     )
+    # === VCD ADDITION ===
+    parser.add_argument(
+        "--vcd",
+        nargs="?",
+        const="waves.vcd",
+        default=None,
+        help="Generate a GTKWave waveform trace file. Supply an optional filename string.",
+    )
 
     args = parser.parse_args()
     simulate_asm(
@@ -184,4 +210,5 @@ if __name__ == "__main__":
         args.testbench_file,
         show_all=args.all,
         timeout_limit=args.timeout,
+        vcd_filepath=args.vcd,  # === VCD ADDITION ===
     )
