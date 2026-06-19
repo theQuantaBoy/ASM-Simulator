@@ -1,8 +1,7 @@
 {
-    "total_cycles": 9,
+    "total_cycles": 8,
     "time_line": {
         "1": {
-            "S": 0,
             "in1": 11,
             "in2": 2
         },

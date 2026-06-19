@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict
 from instructions import MicroInstruction, Condition
-from parser import ExpressionEvaluator
 
 
 class AbstractBox(ABC):
@@ -25,9 +24,7 @@ class StateBox(AbstractBox):
 
     def perform(self, datapath) -> str:
         for action in self.actions:
-            ExpressionEvaluator.execute_micro_instruction(
-                action.raw_instruction, datapath
-            )
+            action.execute(datapath)
         return self.next_box
 
 
@@ -39,9 +36,7 @@ class ConditionalBox(AbstractBox):
 
     def perform(self, datapath) -> str:
         for action in self.actions:
-            ExpressionEvaluator.execute_micro_instruction(
-                action.raw_instruction, datapath
-            )
+            action.execute(datapath)
         return self.next_box
 
 
@@ -52,9 +47,7 @@ class DecisionBox(AbstractBox):
         self.branches = branches
 
     def perform(self, datapath) -> str:
-        eval_result = ExpressionEvaluator.evaluate_rhs(
-            self.condition.raw_condition, datapath
-        )
+        eval_result = self.condition.evaluate(datapath)
         eval_str = str(eval_result)
 
         if eval_str not in self.branches:

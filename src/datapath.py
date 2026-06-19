@@ -11,7 +11,7 @@ class Register:
         self.next_val = value & mask
         self.should_change = True
 
-    def commit(self):
+    def apply(self):
         if self.should_change:
             self.current_val = self.next_val
         # Default future value preserves the current memory unless a new assignment occurs
@@ -22,5 +22,5 @@ class Register:
 class Datapath:
     def __init__(self, inputs: dict, outputs: list, registers: dict):
         self.inputs = inputs
-        self.outputs = outputs
+        self.outputs = set(outputs)
         self.registers = registers

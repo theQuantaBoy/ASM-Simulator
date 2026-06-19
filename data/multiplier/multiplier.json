@@ -1,0 +1,97 @@
+{
+    "metadata": {
+        "inputs": {
+            "in1": 32,
+            "in2": 32
+        },
+        "outputs": [
+            "R4",
+            "RR"
+        ],
+        "registers": {
+            "R1": 32,
+            "R2": 32,
+            "R3": 32,
+            "RR": 1,
+            "R4": 32,
+            "S": 1
+        }
+    },
+    "initial_box": "Box1",
+    "boxes": {
+        "Box1": {
+            "type": "STATE",
+            "actions": [],
+            "next": "Box2"
+        },
+        "Box2": {
+            "type": "DECISION",
+            "condition": "S",
+            "branches": {
+                "0": "Box1",
+                "1": "Box3"
+            }
+        },
+        "Box3": {
+            "type": "CONDITIONAL",
+            "actions": [
+                "R1 <= in1",
+                "R2 <= in2",
+                "RR <= 0"
+            ],
+            "next": "Box4"
+        },
+        "Box4": {
+            "type": "STATE",
+            "actions": [
+                "R3 <= 0"
+            ],
+            "next": "Box5"
+        },
+        "Box5": {
+            "type": "DECISION",
+            "condition": "R1 > R2",
+            "branches": {
+                "0": "Box7",
+                "1": "Box6"
+            }
+        },
+        "Box6": {
+            "type": "CONDITIONAL",
+            "actions": [
+                "R1 <= R2",
+                "R2 <= R1"
+            ],
+            "next": "Box7"
+        },
+        "Box7": {
+            "type": "STATE",
+            "actions": [],
+            "next": "Box8"
+        },
+        "Box8": {
+            "type": "DECISION",
+            "condition": "OR R1",
+            "branches": {
+                "0": "Box10",
+                "1": "Box9"
+            }
+        },
+        "Box9": {
+            "type": "CONDITIONAL",
+            "actions": [
+                "R1 <= R1 - 1",
+                "R3 <= R3 + R2"
+            ],
+            "next": "Box7"
+        },
+        "Box10": {
+            "type": "CONDITIONAL",
+            "actions": [
+                "R4 <= R3",
+                "RR <= 1"
+            ],
+            "next": "Box1"
+        }
+    }
+}
