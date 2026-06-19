@@ -1,0 +1,15 @@
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Simulator output
+*.vcd
+
+# Editors
+.vscode/
+.idea/
+
+# OS
+.DS_Store
