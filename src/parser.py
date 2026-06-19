@@ -24,7 +24,7 @@ class ExpressionEvaluator:
         rhs_str = ExpressionEvaluator.clean_string(rhs_str)
 
         # Master operator matcher sorted by length to prevent partial word/symbol splits
-        op_pattern = r"(==|>=|<=|<<|>>|>|<|\+|-|&|\||\^|~|\bAND\b|\bOR\b|\bXOR\b|\bNOT\b|\bshr\b|\bshl\b)"
+        op_pattern = r"(!=|==|>=|<=|<<|>>|>|<|\+|-|&|\||\^|~|\bAND\b|\bOR\b|\bXOR\b|\bNOT\b|\bshr\b|\bshl\b)"
         match = re.search(op_pattern, rhs_str, re.IGNORECASE)
 
         if not match:
@@ -88,6 +88,8 @@ class ExpressionEvaluator:
                 return 1 if val1 >= val2 else 0
             elif op == "<=":
                 return 1 if val1 <= val2 else 0
+            elif op == "!=":
+                return 1 if val1 != val2 else 0
             else:
                 raise ValueError(f"Unsupported operational operator: '{op}'")
 
