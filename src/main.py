@@ -59,7 +59,11 @@ def build_report_header(
     tracked_registers: list,
 ) -> tuple[str, str]:
     """Build and print the report title and column headers. Returns (header_line, sep)."""
-    headers = ["Clock Cycle", "Active State"] + tracked_inputs + tracked_registers
+    # Labeled "ASM Block" rather than "Active State": each ASM Block begins at
+    # exactly one State Box and is uniquely identified by that box's ID, so the
+    # two terms are interchangeable here. Naming State Boxes after what their
+    # block does (e.g. "Loop", "WriteResult") makes this column self-explanatory.
+    headers = ["Clock Cycle", "ASM Block"] + tracked_inputs + tracked_registers
     header_line = " | ".join(f"{h:<13}" for h in headers)
     sep = "-" * len(header_line)
 
@@ -76,13 +80,17 @@ def build_report_header(
 
 def print_cycle_row(
     cycle_idx: int,
-    state_id: str,
+    block_id: str,
     tracked_inputs: list,
     tracked_registers: list,
     datapath,
 ) -> None:
-    """Print one row of the cycle-accurate signal table."""
-    row_values = [str(cycle_idx), state_id]
+    """Print one row of the cycle-accurate signal table.
+
+    block_id is the State Box that started this cycle's ASM Block — i.e. the
+    block that was active and fully executed during this clock pulse.
+    """
+    row_values = [str(cycle_idx), block_id]
     for inp in tracked_inputs:
         row_values.append(str(datapath.inputs[inp]))
     for reg in tracked_registers:
@@ -138,7 +146,7 @@ def simulate_asm(
         current_box_id = initial_box
         has_left_initial = False
 
-        for i in range(max_cycles):
+        for i in range(1, max_cycles + 1):
 
             apply_testbench_inputs(i, time_line, datapath)
 

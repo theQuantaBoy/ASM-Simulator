@@ -1,15 +1,15 @@
 INPUT in1<31:0>, in2<31:0>;
 REGISTER R1<31:0>, R2<31:0>, R3<31:0>, RR<0:0>, R4<31:0>, S<0,0>;
 OUTPUT R4, RR;
-INITIAL Box1;
+INITIAL Idle;
 
-Box1: STATE, {}, Box2;
-Box2: DECISION, {S}, 0:Box1, 1:Box3;
-Box3: CONDITIONAL, {R1=in1, R2=in2, RR=0}, Box4;
-Box4: STATE, {R3=0}, Box5;
-Box5: DECISION, {R1>R2}, 0:Box7, 1:Box6;
-Box6: CONDITIONAL, {R1=R2, R2=R1}, Box7;
-Box7: STATE, {}, Box8;
-Box8: DECISION, {OR R1}, 0:Box10, 1:Box9;
-Box9: CONDITIONAL, {R1=R1-1, R3=R3+R2}, Box7;
-Box10: CONDITIONAL, {R4=R3, RR=1}, Box1;
+Idle: STATE, {}, CheckStart;
+CheckStart: DECISION, {S}, 0:Idle, 1:LoadOperands;
+LoadOperands: CONDITIONAL, {R1=in1, R2=in2, RR=0}, Setup;
+Setup: STATE, {R3=0}, CompareOperands;
+CompareOperands: DECISION, {R1>R2}, 0:Loop, 1:SwapOperands;
+SwapOperands: CONDITIONAL, {R1=R2, R2=R1}, Loop;
+Loop: STATE, {}, CheckDone;
+CheckDone: DECISION, {OR R1}, 0:WriteResult, 1:Accumulate;
+Accumulate: CONDITIONAL, {R1=R1-1, R3=R3+R2}, Loop;
+WriteResult: CONDITIONAL, {R4=R3, RR=1}, Idle;

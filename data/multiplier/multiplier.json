@@ -17,81 +17,81 @@
             "S": 1
         }
     },
-    "initial_box": "Box1",
+    "initial_box": "Idle",
     "boxes": {
-        "Box1": {
+        "Idle": {
             "type": "STATE",
             "actions": [],
-            "next": "Box2"
+            "next": "CheckStart"
         },
-        "Box2": {
+        "CheckStart": {
             "type": "DECISION",
             "condition": "S",
             "branches": {
-                "0": "Box1",
-                "1": "Box3"
+                "0": "Idle",
+                "1": "LoadOperands"
             }
         },
-        "Box3": {
+        "LoadOperands": {
             "type": "CONDITIONAL",
             "actions": [
                 "R1 <= in1",
                 "R2 <= in2",
                 "RR <= 0"
             ],
-            "next": "Box4"
+            "next": "Setup"
         },
-        "Box4": {
+        "Setup": {
             "type": "STATE",
             "actions": [
                 "R3 <= 0"
             ],
-            "next": "Box5"
+            "next": "CompareOperands"
         },
-        "Box5": {
+        "CompareOperands": {
             "type": "DECISION",
             "condition": "R1 > R2",
             "branches": {
-                "0": "Box7",
-                "1": "Box6"
+                "0": "Loop",
+                "1": "SwapOperands"
             }
         },
-        "Box6": {
+        "SwapOperands": {
             "type": "CONDITIONAL",
             "actions": [
                 "R1 <= R2",
                 "R2 <= R1"
             ],
-            "next": "Box7"
+            "next": "Loop"
         },
-        "Box7": {
+        "Loop": {
             "type": "STATE",
             "actions": [],
-            "next": "Box8"
+            "next": "CheckDone"
         },
-        "Box8": {
+        "CheckDone": {
             "type": "DECISION",
             "condition": "OR R1",
             "branches": {
-                "0": "Box10",
-                "1": "Box9"
+                "0": "WriteResult",
+                "1": "Accumulate"
             }
         },
-        "Box9": {
+        "Accumulate": {
             "type": "CONDITIONAL",
             "actions": [
                 "R1 <= R1 - 1",
                 "R3 <= R3 + R2"
             ],
-            "next": "Box7"
+            "next": "Loop"
         },
-        "Box10": {
+        "WriteResult": {
             "type": "CONDITIONAL",
             "actions": [
                 "R4 <= R3",
                 "RR <= 1"
             ],
-            "next": "Box1"
+            "next": "Idle"
         }
     }
 }
